@@ -1,0 +1,7 @@
+# Chi can ghi path muon duoc push, tuong doi voi LOCAL_DIR.
+# Neu ket thuc bang / thi script hieu la folder va tu dong include toan bo ben trong.
+# Bo qua dong rong va dong bat dau bang #.
+
+data/datasets/classification/cnn_format/split/test/
+data/datasets/classification/cnn_format/split/train/
+data/datasets/classification/cnn_format/split/val/

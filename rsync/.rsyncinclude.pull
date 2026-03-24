@@ -1,0 +1,5 @@
+# Chi can ghi path muon duoc pull, tuong doi voi REMOTE_PULL_DIR.
+# Neu ket thuc bang / thi script hieu la folder va tu dong include toan bo ben trong.
+# Bo qua dong rong va dong bat dau bang #.
+
+#models/bg_classifier.pt

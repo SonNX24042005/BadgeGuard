@@ -1,0 +1,12 @@
+.env
+node_modules/
+.git/
+*.log
+__pycache__
+.devcontainer/
+.gitignore
+rsync/
+data/
+wandb/
+trainning/
+demo_wandb.py

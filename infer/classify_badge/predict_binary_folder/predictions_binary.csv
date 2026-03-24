@@ -1,0 +1,49 @@
+image_path,pred_index,pred_label,p_class0,p_class1,threshold
+data/datasets/classification/test_real/4385878aee2b6075393a.jpg,1,chest,0.3232174217700958,0.6767825484275818,0.5
+data/datasets/classification/test_real/4385878aee2b6075393a_hue120.jpg,0,badge,0.5364436507225037,0.46355628967285156,0.5
+data/datasets/classification/test_real/4385878aee2b6075393a_hue150.jpg,0,badge,0.5873982310295105,0.4126017987728119,0.5
+data/datasets/classification/test_real/4385878aee2b6075393a_hue30.jpg,1,chest,0.2373819202184677,0.7626180648803711,0.5
+data/datasets/classification/test_real/4385878aee2b6075393a_hue60.jpg,1,chest,0.1406138688325882,0.859386146068573,0.5
+data/datasets/classification/test_real/4385878aee2b6075393a_hue90.jpg,1,chest,0.3661947548389435,0.6338052749633789,0.5
+data/datasets/classification/test_real/93f3ef876b21e57fbc30.jpg,1,chest,0.018584325909614563,0.9814156293869019,0.5
+data/datasets/classification/test_real/93f3ef876b21e57fbc30_hue120.jpg,1,chest,0.2229125052690506,0.7770874500274658,0.5
+data/datasets/classification/test_real/93f3ef876b21e57fbc30_hue150.jpg,1,chest,0.06426083296537399,0.9357391595840454,0.5
+data/datasets/classification/test_real/93f3ef876b21e57fbc30_hue30.jpg,1,chest,0.12152186781167984,0.8784781694412231,0.5
+data/datasets/classification/test_real/93f3ef876b21e57fbc30_hue60.jpg,1,chest,0.3293052911758423,0.6706947088241577,0.5
+data/datasets/classification/test_real/93f3ef876b21e57fbc30_hue90.jpg,1,chest,0.1218748390674591,0.8781251311302185,0.5
+data/datasets/classification/test_real/Gemini_Generated_Image_ra1vqera1vqera1v.png,0,badge,0.9398865699768066,0.06011345237493515,0.5
+data/datasets/classification/test_real/Gemini_Generated_Image_ra1vqera1vqera1v_hue120.png,0,badge,0.9901359677314758,0.00986399408429861,0.5
+data/datasets/classification/test_real/Gemini_Generated_Image_ra1vqera1vqera1v_hue150.png,0,badge,0.9925066828727722,0.007493351586163044,0.5
+data/datasets/classification/test_real/Gemini_Generated_Image_ra1vqera1vqera1v_hue30.png,0,badge,0.9670101404190063,0.032989855855703354,0.5
+data/datasets/classification/test_real/Gemini_Generated_Image_ra1vqera1vqera1v_hue60.png,0,badge,0.9433781504631042,0.05662184953689575,0.5
+data/datasets/classification/test_real/Gemini_Generated_Image_ra1vqera1vqera1v_hue90.png,0,badge,0.989334762096405,0.010665233246982098,0.5
+data/datasets/classification/test_real/aee5b410deb150ef09a0.jpg,1,chest,0.3732995390892029,0.6267004609107971,0.5
+data/datasets/classification/test_real/aee5b410deb150ef09a0_hue120.jpg,1,chest,0.40711939334869385,0.5928806066513062,0.5
+data/datasets/classification/test_real/aee5b410deb150ef09a0_hue150.jpg,1,chest,0.42413240671157837,0.5758675932884216,0.5
+data/datasets/classification/test_real/aee5b410deb150ef09a0_hue30.jpg,1,chest,0.43230125308036804,0.5676987767219543,0.5
+data/datasets/classification/test_real/aee5b410deb150ef09a0_hue60.jpg,1,chest,0.2643381953239441,0.7356618046760559,0.5
+data/datasets/classification/test_real/aee5b410deb150ef09a0_hue90.jpg,0,badge,0.5526447296142578,0.4473552703857422,0.5
+data/datasets/classification/test_real/image copy 2.png,0,badge,0.7446349859237671,0.25536495447158813,0.5
+data/datasets/classification/test_real/image copy 2_hue120.png,0,badge,0.8879950046539307,0.11200505495071411,0.5
+data/datasets/classification/test_real/image copy 2_hue150.png,0,badge,0.8315851092338562,0.1684148609638214,0.5
+data/datasets/classification/test_real/image copy 2_hue30.png,0,badge,0.6905678510665894,0.30943211913108826,0.5
+data/datasets/classification/test_real/image copy 2_hue60.png,0,badge,0.7413666844367981,0.2586332857608795,0.5
+data/datasets/classification/test_real/image copy 2_hue90.png,0,badge,0.6107913255691528,0.38920867443084717,0.5
+data/datasets/classification/test_real/image copy 3.png,0,badge,0.9242424964904785,0.0757574513554573,0.5
+data/datasets/classification/test_real/image copy 3_hue120.png,0,badge,0.9870617985725403,0.012938219122588634,0.5
+data/datasets/classification/test_real/image copy 3_hue150.png,0,badge,0.974826455116272,0.02517349272966385,0.5
+data/datasets/classification/test_real/image copy 3_hue30.png,0,badge,0.9872347712516785,0.012765171006321907,0.5
+data/datasets/classification/test_real/image copy 3_hue60.png,0,badge,0.9643948078155518,0.035605140030384064,0.5
+data/datasets/classification/test_real/image copy 3_hue90.png,0,badge,0.9525033235549927,0.047496676445007324,0.5
+data/datasets/classification/test_real/image copy.png,0,badge,0.7300341725349426,0.26996588706970215,0.5
+data/datasets/classification/test_real/image copy_hue120.png,0,badge,0.7467164993286133,0.2532835304737091,0.5
+data/datasets/classification/test_real/image copy_hue150.png,0,badge,0.778858482837677,0.22114154696464539,0.5
+data/datasets/classification/test_real/image copy_hue30.png,0,badge,0.7588276267051697,0.24117238819599152,0.5
+data/datasets/classification/test_real/image copy_hue60.png,0,badge,0.595518171787262,0.4044818580150604,0.5
+data/datasets/classification/test_real/image copy_hue90.png,1,chest,0.39277592301368713,0.6072240471839905,0.5
+data/datasets/classification/test_real/image.png,0,badge,0.9740989804267883,0.025901012122631073,0.5
+data/datasets/classification/test_real/image_hue120.png,0,badge,0.9794824719429016,0.020517507568001747,0.5
+data/datasets/classification/test_real/image_hue150.png,0,badge,0.9820061922073364,0.017993781715631485,0.5
+data/datasets/classification/test_real/image_hue30.png,0,badge,0.975915789604187,0.02408420480787754,0.5
+data/datasets/classification/test_real/image_hue60.png,0,badge,0.9628146290779114,0.0371854268014431,0.5
+data/datasets/classification/test_real/image_hue90.png,0,badge,0.970421552658081,0.029578497633337975,0.5

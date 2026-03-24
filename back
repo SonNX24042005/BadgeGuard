@@ -1,0 +1,242 @@
+#!/usr/bin/env python3
+"""
+Augment shirt color by shifting Hue ONLY on non-orange regions.
+Orange lanyard pixels (Hue 5-25°) are preserved.
+
+Uses CuPy (GPU) when available, falls back to NumPy (CPU).
+"""
+
+from pathlib import Path
+import cv2
+import numpy as np
+import time
+from tqdm import tqdm
+
+# ─── Try GPU (CuPy) ────────────────────────────────────────────────
+try:
+    import cupy as cp
+    USE_GPU = True
+    xp = cp  # array module
+    print("[INFO] CuPy detected → GPU mode ON")
+except ImportError:
+    USE_GPU = False
+    xp = np
+    print("[INFO] CuPy not found → CPU mode (numpy)")
+
+# ═══════════════════════════════════════════════════════════════════
+# CONFIG
+# ═══════════════════════════════════════════════════════════════════
+BASE_DIR = Path("data/datasets/classification/cnn_format/split/test")
+
+INPUT_DIRS = [
+    BASE_DIR / "badge",
+]
+
+OUTPUT_DIR = BASE_DIR / "aug"
+
+# Hue shifts to generate (OpenCV Hue: 0-180)
+# Each value creates one augmented copy per input image
+HUE_SHIFTS = [30, 60, 90, 120, 150]
+
+# Orange/red hue range to PROTECT (OpenCV scale 0-180)
+# Dây thẻ cam: ~10-25° in OpenCV, mở rộng ra để cover tất cả vùng viền
+ORANGE_HUE_LOW = 0
+ORANGE_HUE_HIGH = 45
+# Thêm vùng màu đỏ sậm (do Hue cuốn vòng báo đỏ ở mức 160-180)
+RED_WRAP_HUE = 150
+
+# Minimum saturation & value for a pixel to be considered "colored"
+# (Bảo vệ vùng màu trắng/xám của bảng tên thẻ và vùng tối của nếp nhăn áo)
+MIN_SAT = 0
+MIN_VAL = 0
+
+# Morphology kernel size to smooth the mask
+MORPH_KERNEL_SIZE = 5
+
+JPEG_QUALITY = 100
+
+# ═══════════════════════════════════════════════════════════════════
+# GPU-ACCELERATED FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════
+
+def to_gpu(arr):
+    """Upload numpy array to GPU if available."""
+    if USE_GPU:
+        return cp.asarray(arr)
+    return arr
+
+
+def to_cpu(arr):
+    """Download GPU array to CPU numpy if needed."""
+    if USE_GPU:
+        return cp.asnumpy(arr)
+    return arr
+
+
+def create_non_orange_mask_gpu(hsv):
+    """
+    Create a mask of pixels whose Hue is OUTSIDE the orange range.
+    Also requires minimum saturation & value (to avoid shifting gray pixels).
+
+    Returns: boolean mask (True = safe to shift), on GPU if available.
+    """
+    h = hsv[:, :, 0]
+    s = hsv[:, :, 1]
+    v = hsv[:, :, 2]
+
+    # Orange/Red range to PROTECT (bao gồm cả màu đỏ sậm lúc wrap-around)
+    is_orange = ((h >= ORANGE_HUE_LOW) & (h <= ORANGE_HUE_HIGH)) | (h >= RED_WRAP_HUE)
+
+    # Also protect very low-saturation (gray/white) and very dark pixels (black/shadows)
+    is_colored = (s >= MIN_SAT) & (v >= MIN_VAL)
+
+    # Shift only colored, non-orange/red pixels
+    mask = (~is_orange) & is_colored
+
+    return mask
+
+
+def shift_hue_masked_gpu(img_bgr, hue_shift):
+    """
+    Shift hue of an image only on non-orange, colored pixels.
+    All computation on GPU (CuPy) if available.
+
+    Args:
+        img_bgr: BGR image (numpy array from cv2.imread)
+        hue_shift: int, amount to shift hue (0-180 scale)
+
+    Returns:
+        augmented BGR image (numpy array)
+    """
+    # Convert BGR → HSV on CPU (OpenCV doesn't have GPU cvtColor easily)
+    hsv_cpu = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
+
+    # Upload to GPU
+    hsv = to_gpu(hsv_cpu.astype(np.int16))  # int16 to avoid overflow
+
+    # Create mask on GPU
+    mask = create_non_orange_mask_gpu(hsv)
+
+    # Shift hue only where mask is True
+    h = hsv[:, :, 0]
+    h_shifted = xp.where(mask, (h + hue_shift) % 180, h)
+    hsv[:, :, 0] = h_shifted
+
+    # Back to CPU, uint8
+    hsv_result = to_cpu(hsv.astype(xp.uint8))
+
+    # Convert HSV → BGR on CPU
+    result_bgr = cv2.cvtColor(hsv_result, cv2.COLOR_HSV2BGR)
+
+    # Optional: smooth the boundary using the mask
+    # Apply slight Gaussian blur at mask edges to reduce harsh transitions
+    mask_cpu = to_cpu(mask).astype(np.uint8) * 255
+
+    kernel = cv2.getStructuringElement(
+        cv2.MORPH_ELLIPSE, (MORPH_KERNEL_SIZE, MORPH_KERNEL_SIZE)
+    )
+
+    # Khử nhiễu hột (noise) ở viền
+    mask_smooth = cv2.morphologyEx(mask_cpu, cv2.MORPH_OPEN, kernel)
+    # Lấp đầy các lỗ hổng nhỏ trên vùng áo
+    mask_smooth = cv2.morphologyEx(mask_smooth, cv2.MORPH_CLOSE, kernel)
+    # Blur cường độ mạnh hơn để nét cắt giữa áo/dây thẻ mềm mại, không bị halo/răng cưa
+    mask_smooth = cv2.GaussianBlur(mask_smooth, (5, 5), 0)
+
+    # Blend: use mask to merge shifted image with original
+    alpha = mask_smooth.astype(np.float32) / 255.0
+    alpha = alpha[:, :, np.newaxis]  # (H, W, 1)
+
+    blended = (result_bgr.astype(np.float32) * alpha +
+               img_bgr.astype(np.float32) * (1.0 - alpha))
+
+    return blended.astype(np.uint8)
+
+
+def process_batch_gpu(images_bgr, hue_shift):
+    """
+    Process a batch of images on GPU for better throughput.
+    Falls back to per-image if shapes differ (cropped BBoxes vary in size).
+    """
+    results = []
+    for img in images_bgr:
+        results.append(shift_hue_masked_gpu(img, hue_shift))
+    return results
+
+
+# ═══════════════════════════════════════════════════════════════════
+# MAIN
+# ═══════════════════════════════════════════════════════════════════
+
+def main():
+    total_generated = 0
+    total_skipped = 0
+    t_start = time.time()
+
+    for input_dir in INPUT_DIRS:
+        if not input_dir.exists():
+            print(f"[WARN] Input dir not found: {input_dir}")
+            continue
+
+        class_name = input_dir.name  # "badge" or "chest"
+        out_dir = OUTPUT_DIR / class_name
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        # Collect all images
+        image_paths = sorted(
+            p for p in input_dir.iterdir()
+            if p.suffix.lower() in (".jpg", ".jpeg", ".png")
+        )
+        print(f"\n[{class_name}] Found {len(image_paths)} images in {input_dir}")
+
+        # Process in batches for GPU efficiency
+        BATCH_SIZE = 32
+        
+        pbar = tqdm(total=len(image_paths), desc=f"[{class_name}]", unit="img")
+        for batch_start in range(0, len(image_paths), BATCH_SIZE):
+            batch_paths = image_paths[batch_start:batch_start + BATCH_SIZE]
+
+            # Load batch
+            batch_images = []
+            valid_paths = []
+            for p in batch_paths:
+                img = cv2.imread(str(p))
+                if img is None:
+                    print(f"  [SKIP] Cannot read: {p.name}")
+                    total_skipped += 1
+                    continue
+                batch_images.append(img)
+                valid_paths.append(p)
+
+            if not batch_images:
+                continue
+
+            # For each hue shift, process the entire batch
+            for shift in HUE_SHIFTS:
+                results = process_batch_gpu(batch_images, shift)
+
+                for img_result, p in zip(results, valid_paths):
+                    out_name = f"{p.stem}_hue{shift}{p.suffix}"
+                    out_path = out_dir / out_name
+                    cv2.imwrite(
+                        str(out_path), img_result
+                    )
+                    total_generated += 1
+
+            # Progress
+            pbar.update(len(batch_paths))
+            pbar.set_postfix({'gen': total_generated, 'skip': total_skipped})
+
+        pbar.close()
+
+    elapsed = time.time() - t_start
+    print(f"\n{'='*50}")
+    print(f"Done in {elapsed:.1f}s")
+    print(f"  Generated: {total_generated} augmented images")
+    print(f"  Skipped:   {total_skipped}")
+    print(f"  Output:    {OUTPUT_DIR}")
+    print(f"  GPU mode:  {'ON (CuPy)' if USE_GPU else 'OFF (numpy)'}")
+
+
+if __name__ == "__main__":
+    main()

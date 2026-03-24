@@ -1,0 +1,17 @@
+{
+  "model_path": "models/badgeguard_v1/bg_classifier.pt",
+  "model_name": "resnet50",
+  "input_dir": "data/datasets/classification/test_real",
+  "device": "cuda",
+  "threshold": 0.5,
+  "classes": {
+    "class0": "badge",
+    "class1": "chest"
+  },
+  "num_images": 48,
+  "pred_counts": {
+    "badge": 32,
+    "chest": 16
+  },
+  "output_csv": "/media/samer/DATA1/DT/Code/PJ/BadgeGuard/infer/classify_badge/predict_binary_folder/predictions_binary.csv"
+}
